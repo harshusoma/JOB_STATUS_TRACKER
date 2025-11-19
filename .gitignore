@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+
+# Sensitive files
+.env
+service_account.json
+workday_cache.json
+
+# Playwright storage
+playwright/.local-browsers/
+
+# Streamlit
+.streamlit/

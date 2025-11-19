@@ -1,0 +1,44 @@
+name: Daily Job Status Scan
+
+on:
+  schedule:
+    - cron: "0 12 * * *" # every day at 12:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright openpyxl python-dotenv gspread oauth2client
+          python -m playwright install --with-deps
+
+      - name: Create Google credentials file
+        env:
+          GOOGLE_SHEETS_CREDENTIALS_JSON: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS_JSON }}
+        run: |
+          echo "$GOOGLE_SHEETS_CREDENTIALS_JSON" > service_account.json
+
+      - name: Run job status tracker
+        env:
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SHEETS_CREDENTIALS_PATH: service_account.json
+          LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
+          LINKEDIN_PASSWORD: ${{ secrets.LINKEDIN_PASSWORD }}
+          WORKDAY_EMAIL: ${{ secrets.WORKDAY_EMAIL }}
+          WORKDAY_PASSWORD_1: ${{ secrets.WORKDAY_PASSWORD_1 }}
+          WORKDAY_PASSWORD_2: ${{ secrets.WORKDAY_PASSWORD_2 }}
+          HEADLESS: "True"
+        run: |
+          python job_status_tracker_gsheets.py
